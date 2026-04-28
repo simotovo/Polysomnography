@@ -1,0 +1,45 @@
+function [signal, label] = crossCorrelation(signal, label, threshold)
+    % INPUT:
+    %   signal: cell (epochs x channels) with arrays of signals
+    %   label: cell (1 x channels) with the labels of the channels
+    %   threshold: value (0-1)
+    %
+    % Output:
+    %   - signal: cell (epochs x channels) with arrays of signals
+    %   - label: cell (1 x channels) with the labels of the channels
+    %   - redundantPairs: matrix (n x 2) with redundant pairs
+
+    numSignals = numel(signal);
+    redundantPairs = [];
+
+    for i = 1:numSignals-1
+        for j = i+1:numSignals
+            corrCoeff = max(abs(xcorr(signal{i}, signal{j}, 'coeff')));
+            
+            if corrCoeff > threshold
+                redundantPairs = [redundantPairs; i, j];
+            end
+        end
+    end
+
+    %Results
+    if isempty(redundantPairs)
+        disp('No redundant signals found.');
+        return;
+    else
+        disp('Pairs of redundant signals found:');
+        disp(redundantPairs);
+    end
+
+    %Deleting redundant signals
+    answer = input('Do you want to delete redundant signals?(y/n): ', 's');
+    if strcmpi(answer, 'y')
+        indicesToRemove = unique(redundantPairs(:, 2), 'stable');
+        signal(indicesToRemove) = [];
+        label(indicesToRemove) = [];
+
+        disp('Re.');
+    else
+        disp('I segnali ridondanti non sono stati eliminati.');
+    end
+end

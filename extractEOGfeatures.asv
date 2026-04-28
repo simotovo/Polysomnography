@@ -1,0 +1,32 @@
+function featureEOG = extractEOGfeatures(freq, eog)
+    
+    nEpochs = height(eog);
+    colNames = {'Rms', 'Energy', 'Var', 'Std', 'Range', 'Mobility', 'Complexity', 'ZCR', 'T/D'};
+    
+    for i = 1:nEpochs
+        signal = eog{i};
+
+        rms_val = rms(signal);
+        energy_val = sum(signal.^2);
+        var_val = var(signal);
+        std_val = std(signal);
+        range_val = max(signal) - min(signal);
+
+        mobility = sqrt(var(diff(signal)) / var_val);
+        complexity = sqrt(var(diff(diff(signal))) / var(diff(signal))) / mobility;
+
+        zc = sum(diff(sign(signal)) ~= 0);  %zero crossing
+        zcr = zc / length(signal);          %zero crossing rate
+
+        featureEOG = []
+    end
+
+    label = {'EOG'};
+    bands = {'delta', 'theta'};
+    bandLimits = [0.1, 4; 4, 8];
+    bandPowers = calculateBandPowers(freq, eog, label, bands, bandLimits);
+
+    delta_theta = bandPowers.(sprintf('%s_%s', label{1}, bands{2})) ./ bandPowers.(sprintf('%s_%s', label{1}, bands{1}));
+    
+
+end
